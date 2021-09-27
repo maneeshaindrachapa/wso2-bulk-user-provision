@@ -56,7 +56,7 @@ public class Utils {
                     Constants.BULK_USER_PROVISION);
         }
         Properties properties = new Properties();
-        Map<String, String> propertiesMap = new HashMap<String, String>();
+        Map<String, String> propertiesMap = new HashMap<>();
         InputStream inputStream = null;
         try {
             inputStream = new FileInputStream(path.toString());
@@ -95,7 +95,7 @@ public class Utils {
 
     private static void sanitizeAndPopulateConfigs(Map<String, String> configs) {
 
-        ConfigurationsDTO configurationsDTO = BulkUserProvisionDataHolder.getInstance().getConfigs();
+        ConfigurationsDTO configurationsDTO = BulkUserProvisionDataHolder.getConfigs();
 
         boolean isEnabled = Boolean.parseBoolean(StringUtils.trim(configs.get(Constants.CONFIG_IS_ENABLED)));
         configurationsDTO.setEnabled(isEnabled);
@@ -169,7 +169,7 @@ public class Utils {
         UserStoreManager userStoreManager = null;
         boolean timeOut = false; // This is to check time limit reached while checking secondary user store.
         try {
-            if (BulkUserProvisionDataHolder.getInstance().getConfigs().isPrimaryUserStore()) {
+            if (BulkUserProvisionDataHolder.getConfigs().isPrimaryUserStore()) {
                 log.info(String.format("%s Trying to find primary user store.", Constants.BULK_USER_PROVISION));
                 userStoreManager = BulkUserProvisionDataHolder.getInstance().getRealmService().getBootstrapRealm()
                         .getUserStoreManager();
@@ -188,10 +188,10 @@ public class Utils {
                 while (userStoreManager == null) {
                     userStoreManager = BulkUserProvisionDataHolder.getInstance().getRealmService().getBootstrapRealm()
                             .getUserStoreManager().getSecondaryUserStoreManager(
-                                    BulkUserProvisionDataHolder.getInstance().getConfigs()
+                                    BulkUserProvisionDataHolder.getConfigs()
                                             .getSecondaryUserStoreDomain());
 
-                    if (System.currentTimeMillis() > time + BulkUserProvisionDataHolder.getInstance().getConfigs()
+                    if (System.currentTimeMillis() > time + BulkUserProvisionDataHolder.getConfigs()
                             .getWaitingTimeForSecondaryUserStore()) {
                         log.error(String.format(
                                 "%s Prerequisites were not satisfied.Secondary user store was not found." +
