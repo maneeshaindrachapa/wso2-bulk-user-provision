@@ -49,11 +49,17 @@ public class Constants {
     public static final String CONFIG_IS_ENABLED = "isEnabled";
     public static final String CONFIG_IS_PRIMARY_USER_STORE = "isPrimaryUserStore";
     public static final String CONFIG_SECONDARY_USER_STORE_DOMAIN = "secondaryUserStoreDomain";
+    public static final String CONFIG_WAITING_TIME_FOR_SECONDARY_USER_STORE_DOMAIN = "timeToWaitForSecondaryUserStore";
     public static final String CONFIG_ROWS_TO_FETCH = "noOfRowsFetch";
     public static final String CONFIG_TENANT_DOMAIN = "tenantDomain";
     public static final String CONFIG_USERNAME_FIELD = "usernameField";
     public static final String CONFIG_PASSWORD_FIELD = "passwordField";
     public static final String CONFIG_ROLE_FIELD_EXIST = "roleFieldExist";
+
+    // default config values
+    public static final String DEFAULT_USERNAME_FIELD = "username";
+    public static final String DEFAULT_PASSWORD_FIELD = "password";
+    public static final int DEFAULT_WAITING_TIME_FOR_SECONDARY_USER_STORE_DOMAIN = 3000;
 
     /**
      * Bulk user provision error codes.
@@ -71,11 +77,18 @@ public class Constants {
         SERVER_EVENT_CONFIG_LOADING_ERROR("BUP-65001", "Error while loading Bulk user provision configs.",
                 "Error while loading Bulk user provision configs : %s"),
         SERVER_INCOMPATIBLE_USER_STORE_MANAGER_ERROR("BUP-65002", "Incompatible user store manager.",
-                "user store manager doesn't support unique Ids."),
+                "user store manager doesn\'t support unique Ids."),
         SERVER_UNEXPECTED_ERROR("BUP-65003", "An unexpected server error occurred.",
                 "An unexpected server error occurred."),
         SERVER_CONFIG_READING_ERROR("BUP-65004", "An error occurred while reading configurations",
-                "An error occurred while reading configurations");
+                "An error occurred while reading configurations"),
+        SERVER_TENANT_ERROR("BUP-65005", "An error occurred while fetching tenant",
+                "An error occurred while fetching tenant"),
+        SERVER_PRIMARY_USER_STORE_FIND_ERROR("BUP-65006",
+                "An error occurred while finding primary user-store",
+                "An error occurred while finding primary user-store"),
+        SERVER_USER_STORE_FIND_ERROR("BUP-65007", "An error occurred while finding user-store",
+                "An error occurred while finding user-store");
 
         private final String code;
         private final String message;
