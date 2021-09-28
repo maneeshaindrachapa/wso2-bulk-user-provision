@@ -34,6 +34,10 @@ public class Constants {
     // Default configs
     public static final String DEFAULT_TENANT_DOMAIN = "carbon.super";
     public static final int DEFAULT_NO_OF_ROWS_FETCH = 100;
+    public static final String DEFAULT_USERNAME_FIELD = "username";
+    public static final String DEFAULT_PASSWORD_FIELD = "password";
+    public static final String DEFAULT_ROLE_FIELD = "role";
+    public static final int DEFAULT_WAITING_TIME_FOR_SECONDARY_USER_STORE_DOMAIN = 3000;
 
     // Thread pool configs
     public static final int DEFAULT_BULK_USER_PROVISION_POOL_SIZE = 4;
@@ -41,9 +45,11 @@ public class Constants {
 
     // Bulk user provision files dir path
     public static final String BULK_USER_PROVISION_CONFIG_FILE = "bulk-user-provision-config.properties";
-    public static final Path BULK_USER_PROVISION_CONFIG_DIR_PATH =
+    public static final Path BULK_USER_PROVISION_CONFIG_DIR_PATH_FILE =
             Paths.get(CarbonUtils.getCarbonHome(), "migration", "bulk-user-provision",
                     BULK_USER_PROVISION_CONFIG_FILE);
+    public static final Path BULK_USER_PROVISION_CSV_DIR_PATH =
+            Paths.get(CarbonUtils.getCarbonHome(), "migration", "bulk-user-provision");
 
     // Config values
     public static final String CONFIG_IS_ENABLED = "isEnabled";
@@ -55,11 +61,12 @@ public class Constants {
     public static final String CONFIG_USERNAME_FIELD = "usernameField";
     public static final String CONFIG_PASSWORD_FIELD = "passwordField";
     public static final String CONFIG_ROLE_FIELD_EXIST = "roleFieldExist";
+    public static final String CONFIG_ROLE_FIELD = "roleField";
 
-    // default config values
-    public static final String DEFAULT_USERNAME_FIELD = "username";
-    public static final String DEFAULT_PASSWORD_FIELD = "password";
-    public static final int DEFAULT_WAITING_TIME_FOR_SECONDARY_USER_STORE_DOMAIN = 3000;
+    // File specific configs.
+    public static final String FILE_TYPE_CSV = ".csv";
+    public static final char COMMA = ',';
+    public static final char DOUBLE_QUOTE = '"';
 
     /**
      * Bulk user provision error codes.
@@ -72,12 +79,15 @@ public class Constants {
         CLIENT_CSV_FILES_NOT_FOUND("BUP-60002", "CSV files not found.", "CSV files not found."),
         CLIENT_CSV_FILE_FOLDER_NOT_FOUND("BUP-60003", "Provided user ID is empty.",
                 "Provided user ID is empty."),
+        CLIENT_USER_STORE_CONFIGURATIONS_ERROR("BUP-60004",
+                "Not configured to use primary user store or not provided secondary user store domain.",
+                "Not configured to use primary user store or not provided secondary user store domain."),
 
         // Server error codes.
-        SERVER_EVENT_CONFIG_LOADING_ERROR("BUP-65001", "Error while loading Bulk user provision configs.",
+        SERVER_CONFIG_LOADING_ERROR("BUP-65001", "Error while loading Bulk user provision configs.",
                 "Error while loading Bulk user provision configs : %s"),
         SERVER_INCOMPATIBLE_USER_STORE_MANAGER_ERROR("BUP-65002", "Incompatible user store manager.",
-                "user store manager doesn\'t support unique Ids."),
+                "user store manager doesn't support unique Ids."),
         SERVER_UNEXPECTED_ERROR("BUP-65003", "An unexpected server error occurred.",
                 "An unexpected server error occurred."),
         SERVER_CONFIG_READING_ERROR("BUP-65004", "An error occurred while reading configurations",

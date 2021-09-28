@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.bulk.user.provision.csv.dto;
 
+import java.util.Map;
+
 /**
  * This class holds the Bulk User Provision feature configurations.
  */
@@ -26,8 +28,14 @@ public class ConfigurationsDTO {
     private boolean isEnabled;
     private boolean isPrimaryUserStore;
     private String secondaryUserStoreDomain;
+    private int waitingTimeForSecondaryUserStore;
     private int noOfRowsFetch;
     private String tenantDomain;
+    private boolean isRoleFieldExists;
+    private String roleField;
+    private String usernameField;
+    private String passwordField;
+    private Map<String, String> claims;
 
     public boolean isEnabled() {
 
@@ -59,6 +67,16 @@ public class ConfigurationsDTO {
         this.secondaryUserStoreDomain = secondaryUserStoreDomain;
     }
 
+    public int getWaitingTimeForSecondaryUserStore() {
+
+        return waitingTimeForSecondaryUserStore;
+    }
+
+    public void setWaitingTimeForSecondaryUserStore(int waitingTimeForSecondaryUserStore) {
+
+        this.waitingTimeForSecondaryUserStore = waitingTimeForSecondaryUserStore;
+    }
+
     public int getNoOfRowsFetch() {
 
         return noOfRowsFetch;
@@ -77,5 +95,55 @@ public class ConfigurationsDTO {
     public void setTenantDomain(String tenantDomain) {
 
         this.tenantDomain = tenantDomain;
+    }
+
+    public boolean isRoleFieldExists() {
+
+        return isRoleFieldExists;
+    }
+
+    public void setRoleFieldExists(boolean roleFieldExists) {
+
+        isRoleFieldExists = roleFieldExists;
+    }
+
+    public String getRoleField() {
+
+        return roleField;
+    }
+
+    public void setRoleField(String roleField) {
+
+        this.roleField = roleField;
+    }
+
+    public String getUsernameField() {
+
+        return usernameField;
+    }
+
+    public void setUsernameField(String usernameField) {
+
+        this.usernameField = usernameField;
+    }
+
+    public String getPasswordField() {
+
+        return passwordField;
+    }
+
+    public void setPasswordField(String passwordField) {
+
+        this.passwordField = passwordField;
+    }
+
+    public Map<String, String> getClaims() {
+
+        return claims;
+    }
+
+    public void setClaims(Map<String, String> claims) {
+
+        this.claims = claims;
     }
 }

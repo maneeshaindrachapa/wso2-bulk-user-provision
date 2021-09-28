@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserStoreException;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +51,7 @@ public class Utils {
 
     public static void readConfigurations() throws BulkUserProvisionException {
 
-        Path path = Constants.BULK_USER_PROVISION_CONFIG_DIR_PATH;
+        Path path = Constants.BULK_USER_PROVISION_CONFIG_DIR_PATH_FILE;
         if (!Files.exists(path) || !Files.isRegularFile(path)) {
             throw handleClientException(Constants.ErrorMessage.CLIENT_CONFIG_FILE_NOT_FOUND,
                     Constants.BULK_USER_PROVISION);
@@ -93,24 +94,44 @@ public class Utils {
         }
     }
 
-    private static void sanitizeAndPopulateConfigs(Map<String, String> configs) {
+    private static void sanitizeAndPopulateConfigs(Map<String, String> configs)
+            throws BulkUserProvisionClientException {
 
         ConfigurationsDTO configurationsDTO = BulkUserProvisionDataHolder.getConfigs();
 
+        // Check Bulk user provision is enabled.
         boolean isEnabled = Boolean.parseBoolean(StringUtils.trim(configs.get(Constants.CONFIG_IS_ENABLED)));
         configurationsDTO.setEnabled(isEnabled);
 
+        // Check using primary user store.
         boolean isPrimaryUserStore =
                 Boolean.parseBoolean(StringUtils.trim(configs.get(Constants.CONFIG_IS_PRIMARY_USER_STORE)));
         configurationsDTO.setPrimaryUserStore(isPrimaryUserStore);
 
+        // Check if role field exists.
+        boolean isRoleFieldExists =
+                Boolean.parseBoolean(StringUtils.trim(configs.get(Constants.CONFIG_ROLE_FIELD_EXIST)));
+        configurationsDTO.setRoleFieldExists(isRoleFieldExists);
+
+        // If role field exists is True, take the roleField from configs.
+        if (isRoleFieldExists) {
+            if (StringUtils.isBlank(configs.get(Constants.CONFIG_ROLE_FIELD))) {
+                configurationsDTO.setRoleField(Constants.DEFAULT_ROLE_FIELD);
+            } else {
+                String roleField = StringUtils.trim(configs.get(Constants.CONFIG_ROLE_FIELD));
+                configurationsDTO.setRoleField(roleField);
+            }
+        }
+
+        // If not using primary user store and secondary user store is not configured throw an error.
         if (!isPrimaryUserStore && StringUtils.isBlank(configs.get(Constants.CONFIG_SECONDARY_USER_STORE_DOMAIN))) {
-            // if primary user store is set false and secondary user store domain is not set primary user store as true.
-            configurationsDTO.setPrimaryUserStore(true);
+            throw handleClientException(Constants.ErrorMessage.CLIENT_USER_STORE_CONFIGURATIONS_ERROR,
+                    Constants.BULK_USER_PROVISION);
         }
         String secondaryUserStoreDomain = StringUtils.trim(configs.get(Constants.CONFIG_SECONDARY_USER_STORE_DOMAIN));
         configurationsDTO.setSecondaryUserStoreDomain(secondaryUserStoreDomain);
 
+        // Check waiting time for secondary user store.
         if (StringUtils.isBlank(configs.get(Constants.CONFIG_WAITING_TIME_FOR_SECONDARY_USER_STORE_DOMAIN))) {
             configurationsDTO.setWaitingTimeForSecondaryUserStore(
                     Constants.DEFAULT_WAITING_TIME_FOR_SECONDARY_USER_STORE_DOMAIN);
@@ -120,6 +141,7 @@ public class Utils {
             configurationsDTO.setNoOfRowsFetch(timeWaitForSecondaryUserStore);
         }
 
+        // Check tenant domain is set if not use default carbon.super tenant domain
         if (StringUtils.isBlank(configs.get(Constants.CONFIG_TENANT_DOMAIN))) {
             configurationsDTO.setTenantDomain(Constants.DEFAULT_TENANT_DOMAIN);
         } else {
@@ -127,6 +149,7 @@ public class Utils {
             configurationsDTO.setSecondaryUserStoreDomain(tenantDomain);
         }
 
+        // Check rows fetch is configured if not use default row values to fetch.
         if (StringUtils.isBlank(configs.get(Constants.CONFIG_ROWS_TO_FETCH))) {
             configurationsDTO.setNoOfRowsFetch(Constants.DEFAULT_NO_OF_ROWS_FETCH);
         } else {
@@ -134,6 +157,7 @@ public class Utils {
             configurationsDTO.setNoOfRowsFetch(noOfRowsFetch);
         }
 
+        // Check username field is configured if not use default username field.
         if (StringUtils.isBlank(configs.get(Constants.CONFIG_USERNAME_FIELD))) {
             configurationsDTO.setUsernameField(Constants.DEFAULT_USERNAME_FIELD);
         } else {
@@ -141,6 +165,7 @@ public class Utils {
             configurationsDTO.setUsernameField(usernameField);
         }
 
+        // Check password field is configured if not use default password field.
         if (StringUtils.isBlank(configs.get(Constants.CONFIG_PASSWORD_FIELD))) {
             configurationsDTO.setUsernameField(Constants.DEFAULT_PASSWORD_FIELD);
         } else {
@@ -203,7 +228,6 @@ public class Utils {
                     }
                 }
             }
-
             if (!timeOut) {
                 log.info(String.format("%s Prerequisites were satisfied.user store found.",
                         Constants.BULK_USER_PROVISION_LOG_PREFIX));
@@ -211,10 +235,36 @@ public class Utils {
         } catch (UserStoreException e) {
             log.error(String.format("%s Error while obtaining user store manager",
                     Constants.BULK_USER_PROVISION_LOG_PREFIX), e);
-            throw handleServerException(Constants.ErrorMessage.SERVER_PRIMARY_USER_STORE_FIND_ERROR,
+            throw handleServerException(Constants.ErrorMessage.SERVER_USER_STORE_FIND_ERROR,
                     Constants.BULK_USER_PROVISION, e);
         }
+        log.info(String.format("%s Time taken to fetch user store:%s", Constants.BULK_USER_PROVISION_LOG_PREFIX,
+                (System.currentTimeMillis() - time)));
         return userStoreManager;
+    }
+
+    // Get CSV files in directory
+    public static File[] getCsvFiles() throws BulkUserProvisionClientException {
+
+        long time = System.currentTimeMillis();
+        File fileDir = new File(String.valueOf(Constants.BULK_USER_PROVISION_CSV_DIR_PATH));
+        File[] files = fileDir.listFiles((fileTemp, name) -> name.toLowerCase().endsWith(Constants.FILE_TYPE_CSV));
+        if (files == null) {
+            log.error(String.format("%s Invalid folder path %s",
+                    Constants.BULK_USER_PROVISION_LOG_PREFIX, fileDir.getAbsolutePath()));
+            throw handleClientException(Constants.ErrorMessage.CLIENT_CSV_FILE_FOLDER_NOT_FOUND,
+                    Constants.BULK_USER_PROVISION);
+        } else if (files.length == 0) {
+            log.error(String.format("%s No CSV file is found at %s",
+                    Constants.BULK_USER_PROVISION_LOG_PREFIX, fileDir.getAbsolutePath()));
+            throw handleClientException(Constants.ErrorMessage.CLIENT_CSV_FILES_NOT_FOUND,
+                    Constants.BULK_USER_PROVISION);
+        }
+        log.info(String.format("%s At least one CSV file is found in %s", Constants.BULK_USER_PROVISION_LOG_PREFIX,
+                fileDir.getAbsolutePath()));
+        log.info(String.format("%s Time taken to fetch files from directory:%s",
+                Constants.BULK_USER_PROVISION_LOG_PREFIX, (System.currentTimeMillis() - time)));
+        return files;
     }
 
     public static BulkUserProvisionClientException handleClientException(Constants.ErrorMessage error, String data) {
