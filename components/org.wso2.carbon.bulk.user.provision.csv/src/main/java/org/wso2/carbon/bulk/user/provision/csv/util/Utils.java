@@ -72,11 +72,17 @@ public class Utils {
             propertiesMap.put(Constants.CONFIG_WAITING_TIME_FOR_SECONDARY_USER_STORE_DOMAIN,
                     properties.getProperty(Constants.CONFIG_WAITING_TIME_FOR_SECONDARY_USER_STORE_DOMAIN));
             propertiesMap.put(Constants.CONFIG_ROWS_TO_FETCH, properties.getProperty(Constants.CONFIG_ROWS_TO_FETCH));
+            propertiesMap.put(Constants.CONFIG_THREAD_POOL_SIZE,
+                    properties.getProperty(Constants.CONFIG_THREAD_POOL_SIZE));
 
             // Specific configs.
             propertiesMap.put(Constants.CONFIG_TENANT_DOMAIN, properties.getProperty(Constants.CONFIG_TENANT_DOMAIN));
             propertiesMap.put(Constants.CONFIG_USERNAME_FIELD, properties.getProperty(Constants.CONFIG_USERNAME_FIELD));
             propertiesMap.put(Constants.CONFIG_PASSWORD_FIELD, properties.getProperty(Constants.CONFIG_PASSWORD_FIELD));
+            propertiesMap.put(Constants.CONFIG_ROLE_FIELD_EXIST,
+                    properties.getProperty(Constants.CONFIG_ROLE_FIELD_EXIST));
+            propertiesMap.put(Constants.CONFIG_ROLE_FIELD, properties.getProperty(Constants.CONFIG_ROLE_FIELD));
+            propertiesMap.put(Constants.CONFIG_CLAIMS, properties.getProperty(Constants.CONFIG_CLAIMS));
 
             sanitizeAndPopulateConfigs(propertiesMap);
         } catch (IOException e) {
@@ -111,7 +117,7 @@ public class Utils {
         // Check if role field exists.
         boolean isRoleFieldExists =
                 Boolean.parseBoolean(StringUtils.trim(configs.get(Constants.CONFIG_ROLE_FIELD_EXIST)));
-        configurationsDTO.setRoleFieldExists(isRoleFieldExists);
+        configurationsDTO.setRoleFieldExist(isRoleFieldExists);
 
         // If role field exists is True, take the roleField from configs.
         if (isRoleFieldExists) {
@@ -157,6 +163,14 @@ public class Utils {
             configurationsDTO.setNoOfRowsFetch(noOfRowsFetch);
         }
 
+        // Check the size of thread pool is configured if not use default.
+        if (StringUtils.isBlank(configs.get(Constants.CONFIG_THREAD_POOL_SIZE))) {
+            configurationsDTO.setThreadPoolSize(Constants.DEFAULT_BULK_USER_PROVISION_POOL_SIZE);
+        } else {
+            int threadPoolSize = Integer.parseInt(StringUtils.trim(configs.get(Constants.CONFIG_THREAD_POOL_SIZE)));
+            configurationsDTO.setThreadPoolSize(threadPoolSize);
+        }
+
         // Check username field is configured if not use default username field.
         if (StringUtils.isBlank(configs.get(Constants.CONFIG_USERNAME_FIELD))) {
             configurationsDTO.setUsernameField(Constants.DEFAULT_USERNAME_FIELD);
@@ -172,6 +186,21 @@ public class Utils {
             String passwordField = StringUtils.trim(configs.get(Constants.CONFIG_PASSWORD_FIELD));
             configurationsDTO.setPasswordField(passwordField);
         }
+
+        // Get claims.
+        if (StringUtils.isBlank(configs.get(Constants.CONFIG_CLAIMS))) {
+            configurationsDTO.setClaims(null);
+        } else {
+            String[] claims = StringUtils.trim(configs.get(Constants.CONFIG_CLAIMS)).split(
+                    String.valueOf(Constants.SEMI_COLON));
+            Map<String, String> claimsMap = new HashMap<>();
+            for (String claim : claims) {
+                String[] claimSplit = claim.split(String.valueOf(Constants.COMMA));
+                // 0 - claim mapping column ,1 - claimURI.
+                claimsMap.put(claimSplit[0], claimSplit[1]);
+            }
+            BulkUserProvisionDataHolder.getConfigs().setClaims(claimsMap);
+        }
     }
 
     // Get tenantID from tenantDomain.
@@ -181,8 +210,8 @@ public class Utils {
             return IdentityTenantUtil.getTenantId(tenantDomain);
         } catch (IdentityRuntimeException e) {
             log.error(String.format(
-                    "%s Prerequisites were not satisfied. Error occurred while resolving tenant Id from tenant domain :%s",
-                    Constants.BULK_USER_PROVISION_LOG_PREFIX, tenantDomain), e);
+                    "%s Prerequisites were not satisfied. Error occurred while resolving tenant Id from tenant domain" +
+                            ":%s", Constants.BULK_USER_PROVISION_LOG_PREFIX, tenantDomain), e);
             throw handleServerException(Constants.ErrorMessage.SERVER_TENANT_ERROR, Constants.BULK_USER_PROVISION, e);
         }
     }

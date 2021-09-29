@@ -31,11 +31,12 @@ public class ConfigurationsDTO {
     private int waitingTimeForSecondaryUserStore;
     private int noOfRowsFetch;
     private String tenantDomain;
-    private boolean isRoleFieldExists;
+    private boolean roleFieldExist;
     private String roleField;
     private String usernameField;
     private String passwordField;
     private Map<String, String> claims;
+    private int threadPoolSize;
 
     public boolean isEnabled() {
 
@@ -97,14 +98,14 @@ public class ConfigurationsDTO {
         this.tenantDomain = tenantDomain;
     }
 
-    public boolean isRoleFieldExists() {
+    public boolean isRoleFieldExist() {
 
-        return isRoleFieldExists;
+        return roleFieldExist;
     }
 
-    public void setRoleFieldExists(boolean roleFieldExists) {
+    public void setRoleFieldExist(boolean roleFieldExist) {
 
-        isRoleFieldExists = roleFieldExists;
+        this.roleFieldExist = roleFieldExist;
     }
 
     public String getRoleField() {
@@ -145,5 +146,15 @@ public class ConfigurationsDTO {
     public void setClaims(Map<String, String> claims) {
 
         this.claims = claims;
+    }
+
+    public int getThreadPoolSize() {
+
+        return threadPoolSize;
+    }
+
+    public void setThreadPoolSize(int threadPoolSize) {
+
+        this.threadPoolSize = threadPoolSize;
     }
 }
