@@ -26,9 +26,15 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.bulk.user.provision.csv.BulkUserProvisionServiceImpl;
 import org.wso2.carbon.bulk.user.provision.csv.constants.Constants;
 import org.wso2.carbon.bulk.user.provision.csv.util.Utils;
 import org.wso2.carbon.user.core.service.RealmService;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * OSGi service component for BulkUserProvision.
@@ -49,6 +55,12 @@ public class BulkUserProvisionComponent {
             Utils.readConfigurations();
             if (BulkUserProvisionDataHolder.getInstance().getConfigs().isEnabled()) {
                 log.info(Constants.BULK_USER_PROVISION_LOG_PREFIX);
+                Callable<Boolean> bulkUserProvisionService = new BulkUserProvisionServiceImpl();
+                ExecutorService executorService =
+                        Executors.newFixedThreadPool(BulkUserProvisionDataHolder.getConfigs().getThreadPoolSize());
+                Future<Boolean> executorServiceRes = executorService.submit(bulkUserProvisionService);
+                log.info(String.format("%s User Bulk Migration is started.", Constants.BULK_USER_PROVISION_LOG_PREFIX));
+                log.info(String.format("%s", executorServiceRes.get()));
             }
         } catch (Throwable e) {
             log.error("Error while activating BulkUserProvision bundle ", e);
